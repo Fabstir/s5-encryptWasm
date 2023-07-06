@@ -12,3 +12,8 @@ An S5 encryptWasm for S5 Client in Javascript for Decentralized content-addresse
 4. yarn wasm-pack
 5. yarn build
 
+## Thanks to
+
+@parajbs-dev (parajbs-dev/s5client-js) for the help and for
+
+<https://github.com/parajbs-dev/s5client-js>
