@@ -16,4 +16,4 @@ An S5 encryptWasm for S5 Client in Javascript for Decentralized content-addresse
 
 @parajbs-dev (parajbs-dev/s5client-js) for the help and for <https://github.com/parajbs-dev/s5client-js>
 
-@redsolver for debugging/testing help and for <https://github.com/s5-dev/S5>
+@redsolver for help and for <https://github.com/s5-dev/S5>
