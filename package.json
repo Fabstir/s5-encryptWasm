@@ -2,13 +2,11 @@
   "name": "s5-encryptWasm",
   "version": "0.1.0-beta1",
   "description": "S5 encypt-wasm for S5 Javascript Client",
-  "main": "dist/cjs/src/index.js",
-  "types": "dist/cjs/src/index.d.ts",
+  "types": "dist/mjs/src/index.d.ts",
   "module": "dist/mjs/src/index.js",
   "exports": {
     ".": {
-      "import": "./dist/mjs/src/index.js",
-      "require": "./dist/cjs/src/index.js"
+      "import": "./dist/mjs/src/index.js"
     }
   },
   "files": [
@@ -20,10 +18,8 @@
     "not OperaMini all"
   ],
   "scripts": {
-    "build": "rimraf dist && tsc --project tsconfig.build.json && tsc --project tsconfig.build.cjs.json && yarn copy-files",
-    "copy-files-cjs": "copyfiles -u 1 encrypt_file/pkg/* dist/cjs/encrypt_file/",
-    "copy-files-mjs": "copyfiles -u 1 encrypt_file/pkg/* dist/mjs/encrypt_file/",
-    "copy-files": "yarn copy-files-cjs && yarn copy-files-mjs",
+    "build": "rimraf dist && tsc --project tsconfig.build.json && yarn copy-files",
+    "copy-files": "copyfiles -u 1 encrypt_file/pkg/* dist/mjs/encrypt_file/",
     "lint": "yarn lint:tsc && yarn lint:eslint",
     "lint:eslint": "eslint . --max-warnings 0",
     "lint:tsc": "tsc",
