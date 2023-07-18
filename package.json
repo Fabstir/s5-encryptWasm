@@ -20,10 +20,8 @@
     "not OperaMini all"
   ],
   "scripts": {
-    "build": "rimraf dist && tsc --project tsconfig.build.json && tsc --project tsconfig.build.cjs.json && yarn copy-files",
-    "copy-files-cjs": "copyfiles -u 1 encrypt_file/pkg/* dist/cjs/encrypt_file/",
-    "copy-files-mjs": "copyfiles -u 1 encrypt_file/pkg/* dist/mjs/encrypt_file/",
-    "copy-files": "yarn copy-files-cjs && yarn copy-files-mjs",
+    "build": "rimraf dist && tsc --project tsconfig.build.json && yarn copy-files",
+    "copy-files": "copyfiles -u 1 encrypt_file/pkg/* dist/mjs/encrypt_file/",
     "lint": "yarn lint:tsc && yarn lint:eslint",
     "lint:eslint": "eslint . --max-warnings 0",
     "lint:tsc": "tsc",
