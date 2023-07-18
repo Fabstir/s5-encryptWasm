@@ -1,9 +1,38 @@
 import { Buffer } from "buffer";
 import { blake3 } from "@noble/hashes/blake3";
-import { convertMHashToB64url, calculateB3hashFromFile, cidTypeEncrypted, mhashBlake3Default, encryptionAlgorithmXChaCha20Poly1305, } from "s5-utils-js";
 import { encrypt_file_xchacha20 } from "../../encrypt_file/pkg/encrypt_file";
 // Might want to add this for export from s5-utils-js
+export const cidTypeEncrypted = 0xae;
+export const mhashBlake3Default = 0x1f;
+export const encryptionAlgorithmXChaCha20Poly1305 = 0xa6;
 export const chunkSizeAsPowerOf2 = 18;
+/**
+ * Calculates the BLAKE3 hash of a file.
+ * @param file - The file to calculate the hash from.
+ * @returns A promise that resolves to a Buffer containing the BLAKE3 hash.
+ */
+export async function calculateB3hashFromFile(file) {
+    // Create a hash object
+    const hasher = await blake3.create({});
+    // Define the chunk size (1 MB)
+    const chunkSize = 1024 * 1024;
+    // Initialize the position to 0
+    let position = 0;
+    // Process the file in chunks
+    while (position <= file.size) {
+        // Slice the file to extract a chunk
+        const chunk = file.slice(position, position + chunkSize);
+        const chunkArrayBuffer = await chunk.arrayBuffer();
+        // Update the hash with the chunk's data
+        hasher.update(Buffer.from(chunkArrayBuffer));
+        // Move to the next position
+        position += chunkSize;
+    }
+    // Obtain the final hash value
+    const b3hash = hasher.digest();
+    // Return the hash value as a Promise resolved to a Buffer
+    return Buffer.from(b3hash);
+}
 /**
  * Calculates the BLAKE3 hash of a file after encrypting it with a given key.
  * @param {File} file - The file to hash.
@@ -112,7 +141,7 @@ export async function encryptFile(file, filename, encryptedKey, cid) {
     const encryptedBlobHash = Buffer.concat([Buffer.alloc(1, mhashBlake3Default), b3hash]);
     const padding = 0;
     const encryptedCidBytes = createEncryptedCid(cidTypeEncrypted, encryptionAlgorithmXChaCha20Poly1305, chunkSizeAsPowerOf2, encryptedBlobHash, encryptedKey, padding, cid);
-    const encryptedCid = "u" + convertMHashToB64url(Buffer.from(encryptedCidBytes));
+    const encryptedCid = "u" + Buffer.from(encryptedCidBytes).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace("=", "");
     return {
         encryptedFile,
         encryptedCid,

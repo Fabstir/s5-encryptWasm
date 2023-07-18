@@ -1,6 +1,15 @@
 /// <reference types="node" />
 import { Buffer } from "buffer";
+export declare const cidTypeEncrypted = 174;
+export declare const mhashBlake3Default = 31;
+export declare const encryptionAlgorithmXChaCha20Poly1305 = 166;
 export declare const chunkSizeAsPowerOf2 = 18;
+/**
+ * Calculates the BLAKE3 hash of a file.
+ * @param file - The file to calculate the hash from.
+ * @returns A promise that resolves to a Buffer containing the BLAKE3 hash.
+ */
+export declare function calculateB3hashFromFile(file: File): Promise<Buffer>;
 /**
  * Calculates the BLAKE3 hash of a file after encrypting it with a given key.
  * @param {File} file - The file to hash.

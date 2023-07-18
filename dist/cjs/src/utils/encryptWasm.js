@@ -1,12 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEncryptedStreamReader = exports.encryptFile = exports.createEncryptedCid = exports.combineKeytoEncryptedCid = exports.removeKeyFromEncryptedCid = exports.calculateB3hashFromFileEncrypt = exports.chunkSizeAsPowerOf2 = void 0;
+exports.getEncryptedStreamReader = exports.encryptFile = exports.createEncryptedCid = exports.combineKeytoEncryptedCid = exports.removeKeyFromEncryptedCid = exports.calculateB3hashFromFileEncrypt = exports.calculateB3hashFromFile = exports.chunkSizeAsPowerOf2 = exports.encryptionAlgorithmXChaCha20Poly1305 = exports.mhashBlake3Default = exports.cidTypeEncrypted = void 0;
 const buffer_1 = require("buffer");
 const blake3_1 = require("@noble/hashes/blake3");
-const s5_utils_js_1 = require("s5-utils-js");
 const encrypt_file_1 = require("../../encrypt_file/pkg/encrypt_file");
 // Might want to add this for export from s5-utils-js
+exports.cidTypeEncrypted = 0xae;
+exports.mhashBlake3Default = 0x1f;
+exports.encryptionAlgorithmXChaCha20Poly1305 = 0xa6;
 exports.chunkSizeAsPowerOf2 = 18;
+/**
+ * Calculates the BLAKE3 hash of a file.
+ * @param file - The file to calculate the hash from.
+ * @returns A promise that resolves to a Buffer containing the BLAKE3 hash.
+ */
+async function calculateB3hashFromFile(file) {
+    // Create a hash object
+    const hasher = await blake3_1.blake3.create({});
+    // Define the chunk size (1 MB)
+    const chunkSize = 1024 * 1024;
+    // Initialize the position to 0
+    let position = 0;
+    // Process the file in chunks
+    while (position <= file.size) {
+        // Slice the file to extract a chunk
+        const chunk = file.slice(position, position + chunkSize);
+        const chunkArrayBuffer = await chunk.arrayBuffer();
+        // Update the hash with the chunk's data
+        hasher.update(buffer_1.Buffer.from(chunkArrayBuffer));
+        // Move to the next position
+        position += chunkSize;
+    }
+    // Obtain the final hash value
+    const b3hash = hasher.digest();
+    // Return the hash value as a Promise resolved to a Buffer
+    return buffer_1.Buffer.from(b3hash);
+}
+exports.calculateB3hashFromFile = calculateB3hashFromFile;
 /**
  * Calculates the BLAKE3 hash of a file after encrypting it with a given key.
  * @param {File} file - The file to hash.
@@ -115,11 +145,11 @@ async function encryptFile(file, filename, encryptedKey, cid) {
     const blob = new Blob([encryptedFileBytes], { type: "application/octet-stream" });
     // Convert Blob to File
     const encryptedFile = new File([blob], filename, { type: "application/octet-stream", lastModified: Date.now() });
-    const b3hash = await (0, s5_utils_js_1.calculateB3hashFromFile)(encryptedFile);
-    const encryptedBlobHash = buffer_1.Buffer.concat([buffer_1.Buffer.alloc(1, s5_utils_js_1.mhashBlake3Default), b3hash]);
+    const b3hash = await calculateB3hashFromFile(encryptedFile);
+    const encryptedBlobHash = buffer_1.Buffer.concat([buffer_1.Buffer.alloc(1, exports.mhashBlake3Default), b3hash]);
     const padding = 0;
-    const encryptedCidBytes = createEncryptedCid(s5_utils_js_1.cidTypeEncrypted, s5_utils_js_1.encryptionAlgorithmXChaCha20Poly1305, exports.chunkSizeAsPowerOf2, encryptedBlobHash, encryptedKey, padding, cid);
-    const encryptedCid = "u" + (0, s5_utils_js_1.convertMHashToB64url)(buffer_1.Buffer.from(encryptedCidBytes));
+    const encryptedCidBytes = createEncryptedCid(exports.cidTypeEncrypted, exports.encryptionAlgorithmXChaCha20Poly1305, exports.chunkSizeAsPowerOf2, encryptedBlobHash, encryptedKey, padding, cid);
+    const encryptedCid = "u" + buffer_1.Buffer.from(encryptedCidBytes).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace("=", "");
     return {
         encryptedFile,
         encryptedCid,
