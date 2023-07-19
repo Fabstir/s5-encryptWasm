@@ -2,6 +2,7 @@
   "name": "s5-encryptWasm",
   "version": "0.1.0-beta1",
   "description": "S5 encypt-wasm for S5 Javascript Client",
+  "types": "dist/mjs/src/index.d.ts",
   "module": "dist/mjs/src/index.js",
   "exports": {
     ".": {
