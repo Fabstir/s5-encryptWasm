@@ -10,6 +10,7 @@ export {
   chunkSizeAsPowerOf2,
   getEncryptedStreamReader,
   calculateB3hashFromFileEncrypt,
+  getKeyFromEncryptedCid,
   removeKeyFromEncryptedCid,
   combineKeytoEncryptedCid,
   createEncryptedCid,
