@@ -25,20 +25,20 @@ export declare function calculateB3hashFromFileEncrypt(file: File, encryptedKey:
  * @param {string} encryptedCid - The encrypted CID to get the key from.
  * @returns {string} The encryption key from the CID.
  */
-export declare function getKeyFromEncryptedCid(encryptedCid: string): string;
+export declare function getKeyFromEncryptedCid(encryptedCid: string, fileSize: number): string;
 /**
  * Removes the encryption key from an encrypted CID.
  * @param {string} encryptedCid - The encrypted CID to remove the key from.
  * @returns {string} The CID with the encryption key removed.
  */
-export declare function removeKeyFromEncryptedCid(encryptedCid: string): string;
+export declare function removeKeyFromEncryptedCid(encryptedCid: string, fileSize: number): string;
 /**
  * Combines an encryption key with an encrypted CID.
  * @param {string} key - The encryption key to combine with the encrypted CID.
  * @param {string} encryptedCidWithoutKey - The encrypted CID without the encryption key.
  * @returns {string} The encrypted CID with the encryption key combined.
  */
-export declare function combineKeytoEncryptedCid(key: string, encryptedCidWithoutKey: string): string;
+export declare function combineKeytoEncryptedCid(key: string, encryptedCidWithoutKey: string, fileSize: number): string;
 export declare function convertBytesToBase64url(hashBytes: Uint8Array): string;
 export declare function convertBase64urlToBytes(b64url: string): Uint8Array;
 /**
