@@ -68,28 +68,17 @@ export async function calculateB3hashFromFileEncrypt(file, encryptedKey) {
     // Return the hash value as a Promise resolved to a Buffer
     return { b3hash: Buffer.from(b3hash), encryptedFileSize };
 }
+const CID_TYPE_ENCRYPTED_LENGTH = 1;
+const ENCRYPTION_ALGORITHM_LENGTH = 1;
+const CHUNK_LENGTH_AS_POWEROF2_LENGTH = 1;
+const ENCRYPTED_BLOB_HASH_LENGTH = 33;
 const KEY_LENGTH = 32;
-const PADDING_LENGTH = 4;
-const ORIGINAL_CID_LENGTH = 34;
-/**
- * Calculates the number of bytes required to represent a given number.
- * @param value The number to calculate the bytes for.
- * @returns The number of bytes required to represent the given number.
- */
-function numberOfBytes(value) {
-    let bytes = 1;
-    while (value >= 256) {
-        value >>= 8;
-        bytes++;
-    }
-    return bytes;
-}
 /**
  * Extracts the encryption key from an encrypted CID.
  * @param {string} encryptedCid - The encrypted CID to get the key from.
  * @returns {string} The encryption key from the CID.
  */
-export function getKeyFromEncryptedCid(encryptedCid, fileSize) {
+export function getKeyFromEncryptedCid(encryptedCid) {
     const extensionIndex = encryptedCid.lastIndexOf(".");
     let cidWithoutExtension;
     if (extensionIndex !== -1) {
@@ -98,11 +87,15 @@ export function getKeyFromEncryptedCid(encryptedCid, fileSize) {
     else {
         cidWithoutExtension = encryptedCid;
     }
-    const fileSizeLength = numberOfBytes(fileSize);
+    console.log("getKeyFromEncryptedCid: encryptedCid = ", encryptedCid);
+    console.log("getKeyFromEncryptedCid: cidWithoutExtension = ", cidWithoutExtension);
     cidWithoutExtension = cidWithoutExtension.slice(1);
     const cidBytes = convertBase64urlToBytes(cidWithoutExtension);
-    const startIndex = cidBytes.length - KEY_LENGTH - PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength;
-    const endIndex = cidBytes.length - PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength;
+    const startIndex = CID_TYPE_ENCRYPTED_LENGTH +
+        ENCRYPTION_ALGORITHM_LENGTH +
+        CHUNK_LENGTH_AS_POWEROF2_LENGTH +
+        ENCRYPTED_BLOB_HASH_LENGTH;
+    const endIndex = startIndex + KEY_LENGTH;
     const selectedBytes = cidBytes.slice(startIndex, endIndex);
     const key = convertBytesToBase64url(selectedBytes);
     return key;
@@ -112,14 +105,16 @@ export function getKeyFromEncryptedCid(encryptedCid, fileSize) {
  * @param {string} encryptedCid - The encrypted CID to remove the key from.
  * @returns {string} The CID with the encryption key removed.
  */
-export function removeKeyFromEncryptedCid(encryptedCid, fileSize) {
+export function removeKeyFromEncryptedCid(encryptedCid) {
     const extensionIndex = encryptedCid.lastIndexOf(".");
     const cidWithoutExtension = extensionIndex === -1 ? encryptedCid : encryptedCid.slice(0, extensionIndex);
     // remove 'u' prefix as well
     const cidWithoutExtensionBytes = convertBase64urlToBytes(cidWithoutExtension.slice(1));
-    const fileSizeLength = numberOfBytes(fileSize);
-    const part1 = cidWithoutExtensionBytes.slice(0, -KEY_LENGTH - PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength);
-    const part2 = cidWithoutExtensionBytes.slice(-PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength);
+    const part1 = cidWithoutExtensionBytes.slice(0, CID_TYPE_ENCRYPTED_LENGTH +
+        ENCRYPTION_ALGORITHM_LENGTH +
+        CHUNK_LENGTH_AS_POWEROF2_LENGTH +
+        ENCRYPTED_BLOB_HASH_LENGTH);
+    const part2 = cidWithoutExtensionBytes.slice(part1.length + KEY_LENGTH);
     const combinedBytes = new Uint8Array(cidWithoutExtensionBytes.length - KEY_LENGTH);
     combinedBytes.set(part1);
     combinedBytes.set(part2, part1.length);
@@ -132,15 +127,17 @@ export function removeKeyFromEncryptedCid(encryptedCid, fileSize) {
  * @param {string} encryptedCidWithoutKey - The encrypted CID without the encryption key.
  * @returns {string} The encrypted CID with the encryption key combined.
  */
-export function combineKeytoEncryptedCid(key, encryptedCidWithoutKey, fileSize) {
+export function combineKeytoEncryptedCid(key, encryptedCidWithoutKey) {
     const extensionIndex = encryptedCidWithoutKey.lastIndexOf(".");
     const cidWithoutKeyAndExtension = extensionIndex === -1 ? encryptedCidWithoutKey : encryptedCidWithoutKey.slice(0, extensionIndex);
     const encryptedCidWithoutKeyBytes = convertBase64urlToBytes(cidWithoutKeyAndExtension.slice(1));
     const keyBytes = convertBase64urlToBytes(key);
     const combinedBytes = new Uint8Array(encryptedCidWithoutKeyBytes.length + keyBytes.length);
-    const fileSizeLength = numberOfBytes(fileSize);
-    const part1 = encryptedCidWithoutKeyBytes.slice(0, -PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength);
-    const part2 = encryptedCidWithoutKeyBytes.slice(-PADDING_LENGTH - ORIGINAL_CID_LENGTH - fileSizeLength);
+    const part1 = encryptedCidWithoutKeyBytes.slice(0, CID_TYPE_ENCRYPTED_LENGTH +
+        ENCRYPTION_ALGORITHM_LENGTH +
+        CHUNK_LENGTH_AS_POWEROF2_LENGTH +
+        ENCRYPTED_BLOB_HASH_LENGTH);
+    const part2 = encryptedCidWithoutKeyBytes.slice(part1.length);
     combinedBytes.set(part1);
     combinedBytes.set(keyBytes, part1.length);
     combinedBytes.set(part2, part1.length + keyBytes.length);
